@@ -1,0 +1,20 @@
+- name: "Beer Mapping"
+  sources:
+  - "/beer/beer-config.yml"
+  attributes:
+    service: "beer-service"
+- name: "Ingredient Mapping"
+  sources:
+  - "/ingredient/ingredient-config.yml"
+  attributes:
+    service: "ingredient-service"
+- name: "Business Mapping"
+  sources:
+    - "/business/business-config.yml"
+  attributes:
+    service: "business-service"
+- name: "Gui Mapping"
+  sources:
+    - "/gui/gui-config.yml"
+  attributes:
+    service: "gui-service"

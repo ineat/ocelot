@@ -1,0 +1,47 @@
+inspectit:
+  instrumentation:
+    actions:
+      get_method_full_name:
+        input:
+          _methodName: String
+          _class: Class
+        value: "new StringBuilder(_class.getSimpleName()).append('.').append(_methodName).toString()"
+    scopes:
+      rest-call-scope:
+        type:
+          name: "com.ineat.poc.gui.GuiController"
+          matcher-mode: "EQUALS_FULLY"
+        methods:
+          - name: "showBeerForm"
+            matcher-mode: "EQUALS_FULLY"
+            visibility: [PUBLIC]
+    rules:
+      rest_call_duration:
+        scopes:
+          rest-call-scope: true
+        entry:
+          method_entry_time:
+            action: timestamp_nanos
+          get_method_full_name:
+            action: get_method_full_name
+        exit:
+          method_duration:
+            action: elapsed_millis
+            data-input:
+              sinceNanos: method_entry_time
+        metrics:
+          '[method/duration]' : method_duration
+  metrics:
+    definitions:
+      '[method/duration]':
+        unit: ms
+        description: "The duration from getIngredients entry to showBeerForm exit"
+        views:
+          '[method/duration/sum]':
+            aggregation: SUM
+            tags:
+              get_method_full_name : true
+          '[method/duration/count]':
+            aggregation: COUNT
+            tags:
+              get_method_full_name: true

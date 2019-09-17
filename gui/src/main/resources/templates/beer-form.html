@@ -1,0 +1,53 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Great beer challenge</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" type="text/css" media="screen" charset="utf-8">
+</head>
+<body>
+<div class="container">
+    <h2>Recette de la <label class="big-title" th:text="${beer.name}"></label></h2>
+
+        <p>
+            <label for="new-ingredient">Ajouter un ingrédient : </label>
+            <select id="new-ingredient">
+                <option th:each="i : ${ingredientsListing}" th:value="${i.id}" th:text="${i.name}"></option>
+            </select>
+            <button id="add">Ajouter</button>
+
+            <button id="submit">Gouter</button>
+            <label th:text="${result}"></label>
+            <!--<input id="new-ingredient" type="text">-->
+        </p>
+
+        <h3>Recette</h3>
+        <ul id="ingredients"></ul>
+
+</div>
+
+
+<div id="lose" class="modal">
+    <div class="modal-content">
+        <span id="closeLose" class="close">&times;</span>
+
+            <h2>Perdu !!</h2><br/>
+            <img src="http://corsi.c.o.pic.centerblog.net/fioup6v8.gif" height="200" width="200">
+
+    </div>
+</div>
+
+
+<div id="win" class="modal">
+    <div class="modal-content">
+        <span id="closeWin" class="close">&times;</span>
+
+        <h2>Gagné</h2><br/>
+        <img src="https://www.gifmania.fr/Gif-Animes-Web-Design/Animations-Symboles/Images-Victory-Signs/Victory-Signs-77548.gif" height="200" width="200">
+
+    </div>
+</div>
+
+<script th:src="@{/js/main.js}" type="text/javascript"></script>
+
+<input type="hidden" id="evaluationUrl" th:value="${evaluationUrl}">
+</body>
+</html>

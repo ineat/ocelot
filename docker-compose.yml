@@ -1,0 +1,135 @@
+version: '2'
+services:
+  ocelot-config-server:
+    image: inspectit/inspectit-ocelot-configurationserver
+    container_name: ocelot-config-server
+    mem_limit: 128M
+    environment:
+      - INSPECTIT_WORKING_DIRECTORY=/configuration-server
+      - INSPECTIT_DEFAULT_USER_PASSWORD=demo
+    volumes:
+      - ./docker/configuration-server:/configuration-server
+    ports:
+      - 8090:8090
+  prometheus:
+    image: prom/prometheus:v2.7.1
+    container_name: prometheus
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=password
+      - GF_PATHS_PROVISIONING=/usr/share/grafana/custom/
+    volumes:
+      - ./docker/grafana/provisioning/prometheus:/usr/share/grafana/custom/
+    ports:
+      - 3001:3000
+  postgres:
+    image: "postgres"
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=beer_user
+      - POSTGRES_PASSWORD=beer_password
+      - POSTGRES_DB=beersDB
+    volumes:
+      - ./docker/db/data.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
+  beer-service:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+      args:
+        - 'JAR_PATH=./beer/target'
+        - 'PORT=8081'
+        - 'JAR=beer.jar'
+        - 'SERVICE=beer-service'
+    image: beer-service-image
+    container_name: beer-service
+    environment:
+      - CONFIG_HTTP_URL=http://ocelot-config-server:8090/api/v1/agent/configuration
+      - DB_URL=jdbc:postgresql://postgres:5432/beersDB
+      - INSPECTIT_SERVICE_NAME=beer-service
+    mem_limit: 512M
+    depends_on:
+      - ocelot-config-server
+      - postgres
+    ports:
+      - 8081:8081
+      - 8888:8888
+  ingredient-service:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+      args:
+        - 'JAR_PATH=./ingredient/target'
+        - 'PORT=8082'
+        - 'JAR=ingredient.jar'
+        - 'SERVICE=ingredient-service'
+    image: ingredient-service-image
+    container_name: ingredient-service
+    environment:
+      - CONFIG_HTTP_URL=http://ocelot-config-server:8090/api/v1/agent/configuration
+      - DB_URL=jdbc:postgresql://postgres:5432/beersDB
+      - INSPECTIT_SERVICE_NAME=ingredient-service
+    mem_limit: 512M
+    depends_on:
+      - ocelot-config-server
+      - postgres
+    ports:
+      - 8082:8082
+      - 8887:8888
+  business-service:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+      args:
+        - 'JAR_PATH=./business/target'
+        - 'PORT=8080'
+        - 'JAR=business.jar'
+        - 'SERVICE=business-service'
+    image: business-service-image
+    container_name: business-service
+    environment:
+      - CONFIG_HTTP_URL=http://ocelot-config-server:8090/api/v1/agent/configuration
+      - BEER_HTTP_URL=http://beer-service:8081/beers
+      - INGREDIENT_HTTP_URL=http://ingredient-service:8082/ingredients/
+      - DB_URL=jdbc:postgresql://postgres:5432/beersDB
+      - INSPECTIT_SERVICE_NAME=business-service
+    mem_limit: 512M
+    depends_on:
+      - ocelot-config-server
+      - beer-service
+      - ingredient-service
+    ports:
+      - 8080:8080
+      - 8886:8888
+  gui-service:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+      args:
+        - 'JAR_PATH=./gui/target'
+        - 'PORT=8083'
+        - 'JAR=gui.jar'
+        - 'SERVICE=gui-service'
+    image: gui-service-image
+    container_name: gui-service
+    environment:
+      - CONFIG_HTTP_URL=http://ocelot-config-server:8090/api/v1/agent/configuration
+      - BUSINESS_HTTP_URL=http://business-service:8080
+      - DB_URL=jdbc:postgresql://postgres:5432/beersDB
+      - INSPECTIT_SERVICE_NAME=gui-service
+    mem_limit: 512M
+    depends_on:
+      - ocelot-config-server
+      - business-service
+    ports:
+      - 8083:8083
+      - 8885:8888
+volumes:
+  db:

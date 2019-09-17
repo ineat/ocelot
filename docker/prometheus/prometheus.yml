@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 1s
+
+scrape_configs:
+  - job_name: beers-challenge-monitor
+    static_configs:
+      - targets: ['beer-service:8888', 'ingredient-service:8888','business-service:8888','gui-service:8888']
