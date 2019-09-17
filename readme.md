@@ -1,4 +1,4 @@
-#Simple demo project of InspectIt Ocelot
+# Simple demo project of InspectIt Ocelot
 
 Goal of this project is to illustrate InspectIt Ocelot Agent usage.
 
